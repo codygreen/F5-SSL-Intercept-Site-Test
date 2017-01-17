@@ -37,7 +37,7 @@ exports.httpsReq = function(address, port, suites, ca_bundle, callback) {
 	});
 	req.on('error', function(e) {
 		if (e.message == "unable to get issuer certificate") {
-			console.log("Cert Error: " + e.message);
+			//console.log("Cert Error: " + e.message);
 			callback(Error('Unable to verify certificate trust: ' + e.message));	
 		} else if (e.message.indexOf("alert handshake failure") > -1) {
 			//console.log("Cipher Suite Error: " + e.message);
