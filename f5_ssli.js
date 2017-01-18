@@ -7,7 +7,6 @@
  *
  */
 
-var fs = require('fs');
 var https = require('https');
 var exports = module.exports = {};
 var default_tmos = "12";
