@@ -9,6 +9,9 @@ var testSitePort = 443;
 var testTMOSVersion = 12;
 var cipher_suites = JSON.parse(fs.readFileSync('tmos_default_cipher_suites.json', 'utf8'));
 var blended_bundle = fs.readFileSync('blended-bundle.crt');
+var ca_bundle_12_1 = fs.readFileSync('ca-bundle_12.1.crt');
+var ca_bundle_11_6 = fs.readFileSync('ca-bundle_11.6.crt');
+var ca_bundle_11_5 = fs.readFileSync('ca-bundle_11.5.crt');
 var mod_bundle = fs.readFileSync('mod-blended-bundle.crt');
 
 describe("F5 SSLi Site Test Suite", function() {
@@ -85,7 +88,37 @@ describe("F5 SSLi Site Test Suite", function() {
 				});
 			}, 100 );
 		})
-		it("Test Empty Bundle", function(done) {
+		it("Test 12.1 CA Bundle", function(done) {
+			setTimeout( function() {
+				ssli.testCA(testSite, testSitePort, cipher_suites[testTMOSVersion], ca_bundle_12_1, function(err, data) {
+					assert.isDefined(data);
+					expect({data}).to.be.an('object');
+					expect(data).to.not.be.an.instanceof(Error);
+					done();
+				});
+			}, 100 );
+		})
+		it("Test 11.6 CA Bundle", function(done) {
+			setTimeout( function() {
+				ssli.testCA(testSite, testSitePort, cipher_suites[testTMOSVersion], ca_bundle_11_6, function(err, data) {
+					assert.isDefined(data);
+					expect({data}).to.be.an('object');
+					expect(data).to.not.be.an.instanceof(Error);
+					done();
+				});
+			}, 100 );
+		})
+		it("Test 11.5 CA Bundle", function(done) {
+			setTimeout( function() {
+				ssli.testCA(testSite, testSitePort, cipher_suites[testTMOSVersion], ca_bundle_11_5, function(err, data) {
+					assert.isDefined(data);
+					expect({data}).to.be.an('object');
+					expect(data).to.not.be.an.instanceof(Error);
+					done();
+				});
+			}, 100 );
+		})
+		it("Test Error Bundle", function(done) {
 			setTimeout( function() {
 				ssli.testCA(testSite, testSitePort, cipher_suites[testTMOSVersion], mod_bundle, function(err, data) {
 					assert.isDefined(err);
