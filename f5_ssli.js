@@ -13,18 +13,25 @@ var exports = module.exports = {};
 var default_ca_bundle = fs.readFileSync('blended-bundle.crt');
 var mod_ca_bundle = fs.readFileSync('mod-blended-bundle.crt');
 var default_tmos = "12";
-var cipher_suites = JSON.parse(fs.readFileSync('tmos_default_cipher_suites.json', 'utf8'));
+
 
 /** 
-  * Make an HTTPS connection
-  *
-  * @param {String} address
-  * @param {Number} port
-  * @param {String} suites
-  */
-exports.httpsReq = function(address, port, suites, ca_bundle, callback) {
+ * Make an HTTPS connection
+ *
+ * @constructor 
+ * @param {String} hostname
+ * @param {Number} port
+ * @param {String} suites
+ */
+exports.httpsReq = function(hostname, port, suites, ca_bundle, callback) {
+	// validate function attributes 
+	callback = (typeof callback === 'function') ? callback : function() {};
+	if (hostname.includes("/")) {
+		callback(Error('Not a valid hostname'), null);
+	}
+
 	var options = {
-	hostname: address,
+	hostname: hostname,
 	port: port,
 	path: '/',
 	method: 'GET',
@@ -33,32 +40,35 @@ exports.httpsReq = function(address, port, suites, ca_bundle, callback) {
 	};
 
 	var req = https.request(options, function(res) {
-		callback(res);
+		callback(null, res);
 	});
 	req.on('error', function(e) {
 		if (e.message == "unable to get issuer certificate") {
 			//console.log("Cert Error: " + e.message);
-			callback(Error('Unable to verify certificate trust: ' + e.message));	
+			callback(Error('Unable to verify certificate trust: ' + e.message), null);	
 		} else if (e.message.indexOf("alert handshake failure") > -1) {
 			//console.log("Cipher Suite Error: " + e.message);
-			callback(Error('Unable to negotiate a TLS cipher suite: ' + e.message));	
+			callback(Error('Unable to negotiate a TLS cipher suite: ' + e.message), null);	
 		} else {
-			console.log("General error" + e.message);
-			callback(Error('General error: ' + e.message));	
+			//console.log("General error" + e.message);
+			callback(Error('General error: ' + e.message), null);	
 		}
 	});
 	req.end();
 };
 
 /**
-  * check CA Bundle
-  *
-  * @param {String} address
-  * @param {Number} port
-  * @param {String} bundle
-  * @return {Ojbect} callback
-  */
-exports.testCA = function(address, port, bundle, callback) {
+ * check CA Bundle
+ *
+ * @constructor 
+ * @param {String} hostname 
+ * @param {Number} port
+ * @param {String} cipherSuite
+ * @param {String} bundle - CA bundle
+ */
+exports.testCA = function(hostname, port, cipherSuite, bundle, callback) {
+	callback = (typeof callback === 'function') ? callback : function() {};
+
 	switch(bundle) {
 		case "blended": 
 			var ca_bundle = default_ca_bundle;
@@ -69,23 +79,24 @@ exports.testCA = function(address, port, bundle, callback) {
 		default: 
 			var ca_bundle = default_ca_bundle;
 	}
-	exports.httpsReq(address, port, cipher_suites[default_tmos], ca_bundle, function(res) {
-		callback(res);
+	exports.httpsReq(hostname, port, cipherSuite, ca_bundle, function(err, res) {
+		callback(err, res);
 	});
 	
 }
 
 /**
-  * check Cipher Suites
-  *
-  * @param {String} address
-  * @param {Number} port
-  * @param {String} tmos
-  * @return {Ojbect} callback
-  */
-exports.testCiphers = function(address, port, tmos, callback) {
-	exports.httpsReq(address, port, cipher_suites[tmos], default_ca_bundle, function(res) {
-		callback(res);
+ * check Cipher Suites
+ *
+ * @constructor
+ * @param {String} hostname
+ * @param {Number} port
+ * @param {String} cipherSuite
+ */
+exports.testCiphers = function(hostname, port, cipherSuite, callback) {
+	callback = (typeof callback === 'function') ? callback : function() {};
+	exports.httpsReq(hostname, port, cipherSuite, default_ca_bundle, function(err, res) {
+		callback(err, res);
 	});
 	
 }
